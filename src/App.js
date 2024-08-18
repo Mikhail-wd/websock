@@ -6,6 +6,7 @@ import {
 import "./index.css";
 import MarketPage from "./pages/MarketPage";
 import MainPage from "./pages/MainPage"
+import LoginPage from "./pages/LoginPage"
 
 const router = createBrowserRouter([
   {
@@ -15,6 +16,10 @@ const router = createBrowserRouter([
   {
     path: "/market",
     element: <MarketPage />
+  },
+  {
+    path: "/login",
+    element: <LoginPage />
   },
 ]);
 function App() {
