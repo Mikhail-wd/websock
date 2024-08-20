@@ -50,10 +50,14 @@ function LoginPage() {
                 contextLogin.dispatch({ type: "login" })
             }
         }
+          if(state.password.toString().length <= 7) {
+            setErrorPasswordText("* Пароль слишком короткий")
+            setErrorPassword(true)
+        }
         if (state.password.match(/[A-Z]/g) === null) {
             setErrorPasswordText("* Пароль не содержит нужных символов или отсутствует")
             setErrorPassword(true)
-        }
+        }      
         if (state.password.match(/[A-Z]/g) !== null && state.password.toString().length >= 8) {
             setErrorPassword(false)
             if (state.mail.match(/^\S+@\S+\.\S+$/) !== null) {
