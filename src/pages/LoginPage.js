@@ -2,11 +2,13 @@ import Header from "../components/header/header"
 import Box from "@mui/material/Box"
 import TextField from "@mui/material/TextField"
 import Button from "@mui/material/Button"
-import { useState } from "react"
+import { CircularProgress } from "@mui/material"
+import { useState, useContext } from "react"
 import { useNavigate } from "react-router-dom"
-import "./login.css"
+import {ContextLogin} from "../App.js"
 
 function LoginPage() {
+    const contextLogin = useContext(ContextLogin)
     const nav = useNavigate()
     const [state, setCompState] = useState({
         mail: "",
@@ -39,19 +41,24 @@ function LoginPage() {
         }
         if (state.mail.match(/^\S+@\S+\.\S+$/) !== null) {
             setErrorMail(false)
+            if (state.password.match(/[A-Z]/g) !== null && state.password.toString().length >= 8) {
+                setAuth(true)
+                fakeFetch()
+                contextLogin.dispatch({type:"login"})
+            }
         }
         if (state.password.match(/[A-Z]/g) === null || state.password.toString().length <= 7) {
             setErrorPassword(true)
         }
         if (state.password.match(/[A-Z]/g) !== null && state.password.toString().length >= 8) {
             setErrorPassword(false)
-        }
-        if (!errorPassword && !errorMail) {
-            setAuth(true)
-            fakeFetch()
+            if (state.mail.match(/^\S+@\S+\.\S+$/) !== null) {
+                setAuth(true)
+                fakeFetch()
+                contextLogin.dispatch({type:"login"})
+            }
         }
     }
-
     return (
         <>
             <Header />
@@ -66,7 +73,11 @@ function LoginPage() {
                         <TextField disabled={authProcess ? true : null} hiddenLabel type="password" id="outlined" label="Пароль" variant="outlined" sx={{ width: "100%" }} value={state.password} onChange={(event) => handlerPassword(event)} /> :
                         <TextField hiddenLabel type="password" error id="outlined-basic" label="Пароль" variant="outlined" sx={{ width: "100%" }} value={state.password} onChange={(event) => handlerPassword(event)} />}
 
-                    <Button disabled={authProcess ? true : null} variant="contained" sx={{ width: "fit-content", padding: "10px 24px", fontSize: "22px", fontWeight: 700, color: "white", backgroundColor: "#474764" }} onClick={() => authCheck()}>{authProcess ? <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div> : null} Авторизация </Button>
+                    <Button disabled={authProcess ? true : null} variant="contained" sx={{ width: "fit-content", padding: "10px 24px", fontSize: "22px", fontWeight: 700, color: "white", backgroundColor: "#474764" }} onClick={() => authCheck()}>{authProcess ?
+                        <Box sx={{ display: 'flex', margin: "0px 20px 0px 0px" }}>
+                            <CircularProgress />
+                        </Box>
+                        : null} Авторизация </Button>
                 </Box>
             </Box>
         </>

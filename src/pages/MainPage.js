@@ -1,11 +1,16 @@
 import Header from "../components/header/header"
-import Spinner from "../components/spinner/spinner"
 import PaginationComp from "../components/pagination/pagination"
-import { useEffect, useState, useRef } from "react"
+import { useContext, useEffect, useState } from "react"
 import { Box, Button } from "@mui/material"
+import { CircularProgress } from "@mui/material"
+import SpinnerPage from "./SpinnerPage"
+import { ContextLogin } from "../App"
+import { useNavigate } from "react-router-dom"
 
 
 function MainPage() {
+    const nav = useNavigate()
+    const login = useContext(ContextLogin)
     const [webSock] = useState(new WebSocket("wss://test.dev-relabs.ru/event"))
     const [socketMessage, setSocketMessage] = useState([])
     const [state, setState] = useState(0)
@@ -27,6 +32,8 @@ function MainPage() {
             if (element.id !== value) {
                 array.push(element)
                 setState({ ...state, items: array })
+            } if (element.id === value && state.items.length === 1) {
+                setState({ ...state, items: [] })
             }
         })
 
@@ -34,7 +41,10 @@ function MainPage() {
 
     function rightColumn() {
         if (socketMessage.length < 1) {
-            return <Spinner />
+            return (
+                <Box sx={{ display: 'flex', width: "100%" }}>
+                    <CircularProgress sx={{ width: "100%" }} />
+                </Box>)
         } else {
             return (
                 socketMessage.map((element, index) => {
@@ -50,14 +60,16 @@ function MainPage() {
     function leftColumn() {
         if (state === 0) {
             return (
-                <Spinner />
+                <Box sx={{ display: 'flex' }}>
+                    <CircularProgress />
+                </Box>
             )
         }
         else {
             return (
                 state.items.map((element, index) => {
                     return (
-                        <Box key={index} sx={{ width: "900px", display: "grid", gridTemplateColumns: "repeat(20, 45px)" }}>
+                        <Box key={index} sx={{ width: "800px", display: "grid", gridTemplateColumns: "repeat(20, 40px)" }}>
                             <Box sx={{ gridColumn: "1 / 2", alignContent: "center" }}>{element.id}</Box>
                             <Box sx={{ gridColumn: "4 / 7", alignContent: "center" }}>{element.name}</Box>
                             <Box sx={{ gridColumn: "7 / 8", alignContent: "center" }}>{element.role}</Box>
@@ -80,6 +92,46 @@ function MainPage() {
         }
     }
 
+    function checkLoging() {
+        if (login.state.login === true) {
+            return (
+                <>
+                    <Header />
+                    <Box sx={{ width: "100%", display: "flex", gap: "30px 10%", flexWrap: "wrap", backgroundColor: "#474764", margin: "0px auto", minHeight: "calc(100dvh - 78px)", justifyContent: "center", paddingTop: "8%" }}>
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: "20px", justifyContent: "start" }}>
+                            <Box sx={{ display: "flex", flexDirection: "column", gap: "20px", justifyContent: "start" }}>
+                                <Box sx={{ fontSize: "24px", fontWeight: 700, color: "white" }}>Список пользователей</Box>
+                                <Box sx={{ width: "800px", display: "grid", gridTemplateColumns: "repeat(20, 40px)" }}>
+                                    <Box sx={{ gridColumn: "1 / 2" }}>ID</Box>
+                                    <Box sx={{ gridColumn: "4 / 7" }}>Имя</Box>
+                                    <Box sx={{ gridColumn: "7 / 8" }}>Роль</Box>
+                                    <Box sx={{ gridColumn: "14 / 17" }}>Дата создания</Box>
+                                    <Box sx={{ gridColumn: "18 / 20" }}>Действие</Box>
+                                </Box>
+                                {leftColumn()}
+                            </Box>
+                            <PaginationComp amount={(state.total / state.limit)} pageSelect={pageSelect} />
+                        </Box>
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: "20px", justifyContent: "start" }}>
+                            <Box sx={{ fontSize: "24px", fontWeight: 700, color: "white" }}>События</Box>
+                            <Box sx={{ display: "flex", flexDirection: "column", gap: "20px", justifyContent: "start" }}>
+                                <Box sx={{ width: "400px", display: "grid", gridTemplateColumns: "repeat(20, 20px)" }}>
+                                    <Box sx={{ gridColumn: "1 / 8" }}>Дата</Box>
+                                    <Box sx={{ gridColumn: "14 / 20" }}>Событие</Box>
+                                </Box>
+                                {rightColumn()}
+                            </Box>
+                        </Box>
+                    </Box>
+                </>
+            )
+        } else {
+            setTimeout(() => nav("/login"), 2000)
+            return (
+                <SpinnerPage />
+            )
+        }
+    }
 
     useEffect(() => {
         webSock.onmessage = function (event) {
@@ -95,7 +147,7 @@ function MainPage() {
             if (socketMessage.length > 20) {
                 webSock.close()
                 console.log("Socket is closed")
-            } 
+            }
         }
     }, [])
     useEffect(() => {
@@ -106,37 +158,7 @@ function MainPage() {
             })
     }, [activePage])
 
-    return (
-        <>
-            <Header />
-            <Box sx={{ width: "100%", display: "flex", gap: "30px 10%", flexWrap: "wrap", backgroundColor: "#474764", margin: "0px auto", minHeight: "calc(100dvh - 78px)", justifyContent: "center", paddingTop: "8%" }}>
-                <Box sx={{ display: "flex", flexDirection: "column", gap: "20px", justifyContent: "start" }}>
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: "20px", justifyContent: "start" }}>
-                        <Box sx={{ fontSize: "24px", fontWeight: 700, color: "white" }}>Список пользователей</Box>
-                        <Box sx={{ width: "600px", display: "grid", gridTemplateColumns: "repeat(20, 45px)" }}>
-                            <Box sx={{ gridColumn: "1 / 2" }}>ID</Box>
-                            <Box sx={{ gridColumn: "4 / 7" }}>Имя</Box>
-                            <Box sx={{ gridColumn: "7 / 8" }}>Роль</Box>
-                            <Box sx={{ gridColumn: "14 / 17" }}>Дата создания</Box>
-                            <Box sx={{ gridColumn: "18 / 20" }}>Действие</Box>
-                        </Box>
-                        {leftColumn()}
-                    </Box>
-                    <PaginationComp amount={(state.total / state.limit)} pageSelect={pageSelect} />
-                </Box>
-                <Box sx={{ display: "flex", flexDirection: "column", gap: "20px", justifyContent: "start" }}>
-                    <Box sx={{ fontSize: "24px", fontWeight: 700, color: "white" }}>События</Box>
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: "20px", justifyContent: "start" }}>
-                        <Box sx={{ width: "400px", display: "grid", gridTemplateColumns: "repeat(20, 20px)" }}>
-                            <Box sx={{ gridColumn: "1 / 8" }}>Дата</Box>
-                            <Box sx={{ gridColumn: "14 / 20" }}>Событие</Box>
-                        </Box>
-                        {rightColumn()}
-                    </Box>
-
-                </Box>
-            </Box>
-        </>
+    return (checkLoging()
     )
 }
 
