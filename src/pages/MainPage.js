@@ -91,7 +91,6 @@ function MainPage() {
             )
         }
     }
-
     function checkLoging() {
         if (login.state.login === true) {
             return (
